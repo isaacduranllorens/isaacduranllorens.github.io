@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Une Tierra, Luna y Sol</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(#dff5ff,#fff5d9);min-height:100vh;color:#26324a}
+main{max-width:900px;margin:auto;padding:28px 18px 40px;text-align:center}
+h1{font-size:clamp(28px,6vw,48px);margin:8px 0;color:#5b4b8a}p{font-size:20px}
+.board{display:grid;grid-template-columns:1fr 1.4fr;gap:24px;align-items:start;margin-top:24px}
+.words,.targets{display:grid;gap:16px}
+.card{background:#fff;border:4px solid #f1c75b;border-radius:24px;padding:16px;box-shadow:0 5px 0 #d8b34c}
+.word{font-size:25px;font-weight:800;min-height:72px;cursor:grab;color:#3d4963;background:#fff}
+.target{min-height:150px;border:4px dashed #8bbbd1;border-radius:28px;background:#ffffffcc;padding:10px;display:flex;align-items:center;justify-content:center;gap:18px}
+.target.over{background:#e5f7ff;border-color:#6aaac6}
+.target.correct{border-style:solid;border-color:#65b67b;background:#edfff1}
+.face{width:105px;height:105px;border-radius:50%;position:relative;display:inline-block;flex:none;box-shadow:inset -8px -8px 0 #0001}
+.face:before,.face:after{content:"";position:absolute;top:37%;width:12px;height:16px;background:#26324a;border-radius:50%}
+.face:before{left:28%}.face:after{right:28%}
+.mouth{position:absolute;left:40%;top:57%;width:22%;height:13px;border-bottom:5px solid #26324a;border-radius:50%}
+.earth{background:#63b7e8}.moon{background:#d9dce2}.sun{background:#ffd34f}
+.mini{font-size:16px;font-weight:700}
+button.reset{margin-top:24px;padding:13px 24px;border:0;border-radius:18px;background:#5b4b8a;color:white;font-size:18px;font-weight:700;cursor:pointer}
+@media(max-width:700px){.board{grid-template-columns:1fr}.target{min-height:125px}.face{width:85px;height:85px}}
+</style>
+</head>
+<body>
+<main>
+<h1>🌈 ¡Une cada palabra con su astro! 🚀</h1>
+<p>Arrastra cada palabra hasta su amigo correspondiente.</p>
+<section class="board">
+<div class="words" id="words"></div>
+<div class="targets" id="targets"></div>
+</section>
+<div id="message" aria-live="polite" style="font-size:22px;font-weight:800;min-height:34px;margin-top:18px"></div>
+<button class="reset" id="reset">🔄 Jugar otra vez</button>
+</main>
+<script>
+const data=[
+ {name:"TIERRA",emoji:"🌍",cls:"earth"},
+ {name:"LUNA",emoji:"🌙",cls:"moon"},
+ {name:"SOL",emoji:"☀️",cls:"sun"}
+];
+const words=document.getElementById("words"),targets=document.getElementById("targets"),message=document.getElementById("message");
+let solved=0;
+function face(x){return `<div class="face ${x.cls}" role="img" aria-label="${x.name}"><span class="mouth"></span></div>`}
+function render(){
+ solved=0;message.textContent="";words.innerHTML="";targets.innerHTML="";
+ [...data].sort(()=>Math.random()-.5).forEach(x=>{
+  const b=document.createElement("button");b.className="word card";b.draggable=true;b.textContent=x.name;b.dataset.name=x.name;
+  b.addEventListener("dragstart",e=>e.dataTransfer.setData("text/plain",x.name));words.appendChild(b);
+ });
+ [...data].sort(()=>Math.random()-.5).forEach(x=>{
+  const t=document.createElement("div");t.className="target";t.dataset.name=x.name;
+  t.innerHTML=`${face(x)}<div><div style="font-size:22px;font-weight:800">${x.emoji} ${x.name}</div><div class="mini">¡Déjame mi palabra!</div></div>`;
+  t.addEventListener("dragover",e=>{e.preventDefault();t.classList.add("over")});
+  t.addEventListener("dragleave",()=>t.classList.remove("over"));
+  t.addEventListener("drop",e=>{e.preventDefault();t.classList.remove("over");check(e.dataTransfer.getData("text/plain"),x.name,t)});
+  targets.appendChild(t);
+ });
+}
+function check(word,target,t){
+ if(t.classList.contains("correct"))return;
+ if(word===target){
+  t.classList.add("correct");solved++;
+  const b=[...document.querySelectorAll(".word")].find(x=>x.dataset.name===word);if(b)b.disabled=true;
+  message.textContent=solved===3?"🎉 ¡Genial! ¡Has unido los tres astros!":"⭐ ¡Muy bien!";
+ }else{
+  message.textContent="💭 ¡Casi! Prueba con otra palabra.";
+ }
+}
+document.getElementById("reset").onclick=render;render();
+</script>
+</body></html>
